@@ -164,11 +164,42 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                     }
                 });
 
-               // setUpMap();
+                if (mMap != null) {
+                    Location location = getCurrentLocation();
+                    if (location!= null) {
+                        Log.e(getLocalClassName(), "recalculating location");
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+                        mMap.clear();
+                        MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+                        mMap.addMarker(options);
+                        mMap.animateCamera(cameraUpdate);
+                    }
+                }
+
+               //setUpMap();
             }
         }
     }
 
+    public Location getCurrentLocation() {
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            Log.e(getLocalClassName(), "Requesting permission");
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        } else {
+
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+             return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+        return null;
+    }
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
      * just add a marker near Africa.
