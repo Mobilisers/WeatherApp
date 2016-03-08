@@ -24,6 +24,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -70,11 +71,11 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION) {
-            if(grantResults.length == 1
+            if (grantResults.length == 1
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // We can now safely use the API we requested access to
 
-              //  locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                //  locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 
             } else {
                 // Permission was denied or request was cancelled
@@ -113,72 +114,19 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
 
-                // Setting a custom info window adapter for the google map
-                mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-
-                    // Use default InfoWindow frame
-                    @Override
-                    public View getInfoWindow(Marker arg0) {
-                        return null;
-                    }
-
-                    // Defines the contents of the InfoWindow
-                    @Override
-                    public View getInfoContents(Marker arg0) {
-
-                        // Getting view from the layout file info_window_layout
-                        View v = getLayoutInflater().inflate(R.layout.infowindow, null);
-
-                        // Getting the position from the marker
-                        LatLng latLng = arg0.getPosition();
-
-                        // Getting reference to the TextView to set latitude and longitude
-                        TextView tvLatLng = (TextView) v.findViewById(R.id.latlong);
-
-                        // Getting reference to the TextView to set timezone
-                        TextView timezone = (TextView) v.findViewById(R.id.timezone);
-                        TextView utc = (TextView) v.findViewById(R.id.utc);
-                        TextView local = (TextView) v.findViewById(R.id.localTime);
-
-                        // Setting the latitude
-                        tvLatLng.setText("Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude);
-
-                        timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
-
-                        //utc time
-
-                        DateFormat df = DateFormat.getTimeInstance();
-                        df.setTimeZone(TimeZone.getTimeZone("utc"));
-                        String gmtTime = df.format(new Date());
-
-                        // Setting the longitude
-                        utc.setText("UTC: " + gmtTime);
-
-                        df.setTimeZone(TimeZone.getDefault());
-                        String localTime = df.format(new Date());
-                        local.setText("Local: " + localTime);
-
-                        // Returning the view containing InfoWindow contents
-                        return v;
-
-                    }
-                });
-
-                if (mMap != null) {
-                    Location location = getCurrentLocation();
-                    if (location!= null) {
-                        Log.e(getLocalClassName(), "recalculating location");
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-                        mMap.clear();
-                        MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
-                        mMap.addMarker(options);
-                        mMap.animateCamera(cameraUpdate);
-                    }
+                Location location = getCurrentLocation();
+                if (location != null) {
+                    Log.e(getLocalClassName(), "recalculating location");
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+                    mMap.clear();
+                    MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+                    mMap.addMarker(options);
+                    mMap.animateCamera(cameraUpdate);
                 }
-
-               //setUpMap();
             }
+
+            setUpMap();
         }
     }
 
@@ -196,10 +144,11 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-             return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
         return null;
     }
+
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
      * just add a marker near Africa.
@@ -208,27 +157,90 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
      */
     private void setUpMap() {
 
-        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
-            public void onMyLocationChange(Location arg0) {
+            public void onMapClick(LatLng latLng) {
+                mMap.clear();
+                MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+                mMap.addMarker(options);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, mMap.getCameraPosition().zoom);
+                mMap.animateCamera(cameraUpdate);
+            }
+        });
+
+ /*       // Setting a custom info window adapter for the google map
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+            // Use default InfoWindow frame
+            @Override
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+
+            // Defines the contents of the InfoWindow
+            @Override
+            public View getInfoContents(Marker arg0) {
+
+                // Getting view from the layout file info_window_layout
+                View v = getLayoutInflater().inflate(R.layout.infowindow, null);
+
+                // Getting the position from the marker
+                LatLng latLng = arg0.getPosition();
+
+                // Getting reference to the TextView to set latitude and longitude
+                TextView tvLatLng = (TextView) v.findViewById(R.id.latlong);
+
+                // Getting reference to the TextView to set timezone
+                TextView timezone = (TextView) v.findViewById(R.id.timezone);
+                TextView utc = (TextView) v.findViewById(R.id.utc);
+                TextView local = (TextView) v.findViewById(R.id.localTime);
+
+                // Setting the latitude
+                tvLatLng.setText("Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude);
+
+                timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
+
+                //utc time
+
+                DateFormat df = DateFormat.getTimeInstance();
+                df.setTimeZone(TimeZone.getTimeZone("utc"));
+                String gmtTime = df.format(new Date());
+
+                // Setting the longitude
+                utc.setText("UTC: " + gmtTime);
+
+                df.setTimeZone(TimeZone.getDefault());
+                String localTime = df.format(new Date());
+                local.setText("Local: " + localTime);
+
+                // Returning the view containing InfoWindow contents
+                return v;
 
             }
         });
+*/
+
+//        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+//
+//            @Override
+//            public void onMyLocationChange(Location arg0) {
+//
+//            }
+//        });
     }
 
     @Override
     public void onLocationChanged(Location location) {
 
-        if (mMap != null) {
-            Log.e(getLocalClassName(), "location changed");
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-            mMap.clear();
-            MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
-            mMap.addMarker(options);
-            mMap.animateCamera(cameraUpdate);
-        }
+//        if (mMap != null) {
+//            Log.e(getLocalClassName(), "location changed");
+//            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+//            mMap.clear();
+//            MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+//            mMap.addMarker(options);
+//            mMap.animateCamera(cameraUpdate);
+//        }
     }
 
     @Override
@@ -247,7 +259,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
         Log.e(getLocalClassName(), "location provider is disabled");
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setMessage(getApplicationName(getApplicationContext())+getApplicationContext().getResources().getString(R.string.gps_network_not_enabled));
+        dialog.setMessage(getApplicationName(getApplicationContext()) + getApplicationContext().getResources().getString(R.string.gps_network_not_enabled));
         dialog.setPositiveButton(getApplicationContext().getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface paramDialogInterface, int paramInt) {
@@ -271,6 +283,6 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 
     public static String getApplicationName(Context context) {
         int stringId = context.getApplicationInfo().labelRes;
-        return context.getString(stringId)+" ";
+        return context.getString(stringId) + " ";
     }
 }
