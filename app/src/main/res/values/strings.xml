@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">NavMap</string>
     <string name="title_activity_maps">Map</string>
+    <string name="gps_network_not_enabled">Please Enable Location Settings</string>
+    <string name="open_location_settings">Ok</string>
+    <string name="Cancel">Cancel</string>
 </resources>
