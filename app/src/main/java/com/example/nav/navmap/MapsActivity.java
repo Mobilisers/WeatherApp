@@ -120,7 +120,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                     CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
                     mMap.clear();
-                    MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+                    MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
                     mMap.addMarker(options);
                     mMap.animateCamera(cameraUpdate);
                 }
@@ -161,7 +161,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             @Override
             public void onMapClick(LatLng latLng) {
                 mMap.clear();
-                MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+                MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
                 mMap.addMarker(options);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, mMap.getCameraPosition().zoom);
                 mMap.animateCamera(cameraUpdate);
@@ -251,6 +251,19 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
     @Override
     public void onProviderEnabled(String provider) {
 
+        if (mMap != null) {
+
+            Location location = getCurrentLocation();
+            if (location != null) {
+                Log.e(getLocalClassName(), "recalculating location");
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+                mMap.clear();
+                MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
+                mMap.addMarker(options);
+                mMap.animateCamera(cameraUpdate);
+            }
+        }
     }
 
     @Override
