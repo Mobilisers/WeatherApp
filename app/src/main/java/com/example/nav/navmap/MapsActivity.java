@@ -37,12 +37,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements LocationListener {
 
     private static final int REQUEST_LOCATION = 100;
     LocationManager locationManager;
     LocationListener locationListener;
+    static final String APPID = "c907b713e03148dd24a4ee70c9f83410";
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
@@ -170,7 +172,19 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                 mMap.addMarker(options);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, mMap.getCameraPosition().zoom);
                 mMap.animateCamera(cameraUpdate);
-               // Toast.makeText(getApplicationContext()," ", Toast.LENGTH_LONG).show();
+
+                String url[] = new String[1];
+                url[0] = "http://api.openweathermap.org/data/2.5/weather?lat="+latLng.latitude+"&lon="+latLng.latitude+"&APPID="+APPID;
+                try {
+                    String json = new Network().execute(url).get();
+                    Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+
             }
         });
 
