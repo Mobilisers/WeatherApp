@@ -34,6 +34,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -174,14 +177,19 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                 mMap.animateCamera(cameraUpdate);
 
                 String url[] = new String[1];
-                url[0] = "http://api.openweathermap.org/data/2.5/weather?lat="+latLng.latitude+"&lon="+latLng.latitude+"&APPID="+APPID;
+                url[0] = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 try {
                     String json = new Network(getApplicationContext()).execute(url).get();
-                    Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+                    if (json != null) {
+                        Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+                        Log.e(getLocalClassName(), String.valueOf(new JSONObject(json)));
+                    }
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
