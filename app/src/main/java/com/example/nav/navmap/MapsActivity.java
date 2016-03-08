@@ -176,7 +176,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                 String url[] = new String[1];
                 url[0] = "http://api.openweathermap.org/data/2.5/weather?lat="+latLng.latitude+"&lon="+latLng.latitude+"&APPID="+APPID;
                 try {
-                    String json = new Network().execute(url).get();
+                    String json = new Network(getApplicationContext()).execute(url).get();
                     Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
 
                 } catch (InterruptedException e) {
