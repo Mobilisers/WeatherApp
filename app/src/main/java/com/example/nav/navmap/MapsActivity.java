@@ -9,7 +9,9 @@ import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Debug;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -32,10 +34,9 @@ import java.util.TimeZone;
 
 public class MapsActivity extends FragmentActivity implements LocationListener {
 
+    private static final int REQUEST_LOCATION = 100;
     LocationManager locationManager;
     LocationListener locationListener;
-    //just in case as i don't have access to an android device at the moment and testing on the simulator
-    Boolean manualOverride;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
@@ -44,23 +45,41 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_maps);
-        //manualOverride =true;
 
         setUpMapIfNeeded();
 
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    public void requestPermissions(@NonNull String[] permissions, int requestCode)
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Check Permissions Now
+            Log.e(getLocalClassName(), "Requesting permission");
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_LOCATION);
+        } else {
+
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 10, this);
+
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_LOCATION) {
+            if(grantResults.length == 1
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // We can now safely use the API we requested access to
+
+              //  locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+            } else {
+                // Permission was denied or request was cancelled
+            }
+        }
     }
 
     @Override
@@ -90,7 +109,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
-            mMap.setMyLocationEnabled(true);
+            // mMap.setMyLocationEnabled(true);
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
 
@@ -122,9 +141,9 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                         TextView local = (TextView) v.findViewById(R.id.localTime);
 
                         // Setting the latitude
-                        tvLatLng.setText("Latitude:" + latLng.latitude +" and Longitude:"+ latLng.longitude);
+                        tvLatLng.setText("Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude);
 
-                        timezone.setText("TimeZone: "+TimeZone.getDefault().getDisplayName());
+                        timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
 
                         //utc time
 
@@ -137,7 +156,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 
                         df.setTimeZone(TimeZone.getDefault());
                         String localTime = df.format(new Date());
-                        local.setText("Local: "+localTime);
+                        local.setText("Local: " + localTime);
 
                         // Returning the view containing InfoWindow contents
                         return v;
@@ -145,7 +164,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
                     }
                 });
 
-                setUpMap();
+               // setUpMap();
             }
         }
     }
@@ -163,40 +182,22 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             @Override
             public void onMyLocationChange(Location arg0) {
 
-                manualOverride = false;
-
-                Log.e(getLocalClassName(), "location changed");
-
-                LatLng latLng = new LatLng(arg0.getLatitude(), arg0.getLongitude());
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-                mMap.clear();
-                MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
-                mMap.addMarker(options);
-                mMap.animateCamera(cameraUpdate);
             }
         });
-
-        Log.i(getLocalClassName(), "location changed");
-
-
-//        if (manualOverride == true) {
-//            mMap.clear();
-//            LatLng latLng = new LatLng( -36.722375, 174.707047);
-//            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-//            mMap.clear();
-//            MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
-//            mMap.addMarker(options);
-//            mMap.animateCamera(cameraUpdate);
-//        }
     }
 
     @Override
     public void onLocationChanged(Location location) {
 
-//        if (mMap!= null){
-//
-//            setUpMap();
-//        }
+        if (mMap != null) {
+            Log.e(getLocalClassName(), "location changed");
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+            mMap.clear();
+            MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
+            mMap.addMarker(options);
+            mMap.animateCamera(cameraUpdate);
+        }
     }
 
     @Override
@@ -212,15 +213,15 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
     @Override
     public void onProviderDisabled(String provider) {
 
-        Log.e(getLocalClassName(),"location provider is disabled");
+        Log.e(getLocalClassName(), "location provider is disabled");
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setMessage(getApplicationContext().getResources().getString(R.string.gps_network_not_enabled));
+        dialog.setMessage(getApplicationName(getApplicationContext())+getApplicationContext().getResources().getString(R.string.gps_network_not_enabled));
         dialog.setPositiveButton(getApplicationContext().getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface paramDialogInterface, int paramInt) {
                 // TODO Auto-generated method stub
-                Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 myIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplicationContext().startActivity(myIntent);
                 //get gps
@@ -235,5 +236,10 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             }
         });
         dialog.show();
+    }
+
+    public static String getApplicationName(Context context) {
+        int stringId = context.getApplicationInfo().labelRes;
+        return context.getString(stringId)+" ";
     }
 }
