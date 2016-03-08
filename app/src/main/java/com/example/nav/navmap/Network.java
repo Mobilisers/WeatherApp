@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -54,8 +55,11 @@ public class Network extends AsyncTask<String, String, String> {
 
             return result.toString();
         }
+        else {
 
-        return null;
+            Toast.makeText(context, "Network Connection Not Availble", Toast.LENGTH_SHORT).show();
+            return null;
+        }
     }
 
     @Override
