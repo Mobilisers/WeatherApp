@@ -33,6 +33,7 @@ public class MapsActivity extends FragmentActivity {
     LocationServices locationServices;
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
+    Marker marker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,23 +119,6 @@ public class MapsActivity extends FragmentActivity {
             public void onMapClick(LatLng latLng) {
                 lastKnownMarkerLocation = latLng;
                 drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
-                String url[] = new String[1];
-                url[0] = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
-                try {
-                    String json = new Network(getApplicationContext()).execute(url).get();
-                    if (json != null) {
-                        //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
-                        Log.e(getLocalClassName(), String.valueOf(new JSONObject(json)));
-                    }
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
             }
         });
 
@@ -171,7 +155,26 @@ public class MapsActivity extends FragmentActivity {
                 TextView local = (TextView) v.findViewById(R.id.localTime);
 
                 // Setting the latitude
-                tvLatLng.setText("Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude);
+//                String latlong = "Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude;
+//                tvLatLng.setText(latlong.trim());
+
+                String url[] = new String[1];
+                url[0] = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+                try {
+                    String json = new Network(getApplicationContext()).execute(url).get();
+                    if (json != null) {
+                        //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+                        Log.e(getLocalClassName(), String.valueOf(new JSONObject(json)));
+                        tvLatLng.setText(String.valueOf(new JSONObject(json)));
+                    }
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
                 timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
 
@@ -213,7 +216,7 @@ public class MapsActivity extends FragmentActivity {
             mMap.clear();
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
-            mMap.addMarker(options);
+            marker = mMap.addMarker(options);
             mMap.animateCamera(cameraUpdate);
         }
     }
