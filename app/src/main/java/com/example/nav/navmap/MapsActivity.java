@@ -47,8 +47,8 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        if (!new Network(this).isNetworkAvailable()) {
-            Toast.makeText(this, "Network Connection Not Availble", Toast.LENGTH_LONG).show();
+        if (!new NetworkServices(this).isNetworkAvailable()) {
+            Toast.makeText(this, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
         } else {
             setUpMapIfNeeded();
         }
@@ -147,7 +147,7 @@ public class MapsActivity extends FragmentActivity {
                 }
 
                 // Getting reference to the TextView to set latitude and longitude
-                TextView tvLatLng = (TextView) v.findViewById(R.id.latlong);
+                final TextView tvLatLng = (TextView) v.findViewById(R.id.latlong);
 
                 // Getting reference to the TextView to set timezone
                 TextView timezone = (TextView) v.findViewById(R.id.timezone);
@@ -158,23 +158,17 @@ public class MapsActivity extends FragmentActivity {
 //                String latlong = "Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude;
 //                tvLatLng.setText(latlong.trim());
 
-                String url[] = new String[1];
-                url[0] = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
-                try {
-                    String json = new Network(getApplicationContext()).execute(url).get();
-                    if (json != null) {
-                        //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
-                        Log.e(getLocalClassName(), String.valueOf(new JSONObject(json)));
-                        tvLatLng.setText(String.valueOf(new JSONObject(json)));
-                    }
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+                   new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+                        @Override
+                        public void result(JSONObject json) {
+                            if (json != null) {
+                                //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+                                Log.e(getLocalClassName(), String.valueOf(json));
+                                tvLatLng.setText(String.valueOf(json));
+                            }
+                        }
+                    });
 
                 timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
 

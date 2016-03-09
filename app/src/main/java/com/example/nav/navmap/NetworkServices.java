@@ -6,6 +6,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -14,19 +15,33 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by nav on 3/8/16.
  */
-public class Network extends AsyncTask<String, String, String> {
+public class NetworkServices extends AsyncTask<String, String, String> {
 
     HttpURLConnection urlConnection;
     Context context;
 
-    public Network(Context context) {
-
+    public NetworkServices(Context context){
         this.context = context;
+    }
 
+    public NetworkServices(String url, Context context, NetworkServicesInterface callback) {
+        this.context = context;
+        String urls[] = new String[1];
+        urls[0] = url;
+        try {
+            callback.result(new JSONObject(execute(url).get()));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -57,7 +72,7 @@ public class Network extends AsyncTask<String, String, String> {
         }
         else {
 
-            Toast.makeText(context, "Network Connection Not Availble", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
             return null;
         }
     }
