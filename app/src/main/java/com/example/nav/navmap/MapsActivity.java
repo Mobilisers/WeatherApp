@@ -16,13 +16,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity {
 
@@ -128,13 +128,6 @@ public class MapsActivity extends FragmentActivity {
             // Use default InfoWindow frame
             @Override
             public View getInfoWindow(Marker arg0) {
-                return null;
-            }
-
-            // Defines the contents of the InfoWindow
-            @Override
-            public View getInfoContents(Marker arg0) {
-
                 // Getting view from the layout file info_window_layout
                 View v = getLayoutInflater().inflate(R.layout.infowindow, null);
 
@@ -159,16 +152,18 @@ public class MapsActivity extends FragmentActivity {
 //                tvLatLng.setText(latlong.trim());
 
                 String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
-                   new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
-                        @Override
-                        public void result(JSONObject json) {
-                            if (json != null) {
-                                //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
-                                Log.e(getLocalClassName(), String.valueOf(json));
-                                tvLatLng.setText(String.valueOf(json));
-                            }
+                new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+                    @Override
+                    public void result(JSONObject json) throws JSONException {
+                        if (json != null) {
+                            JSONArray array = json.getJSONArray("weather");
+                            JSONObject object = (JSONObject) array.get(0);
+                            //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+                            Log.e(getLocalClassName(), String.valueOf(array));
+                            tvLatLng.setText("Weather: " + object.getString("description"));
                         }
-                    });
+                    }
+                });
 
                 timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
 
@@ -187,6 +182,13 @@ public class MapsActivity extends FragmentActivity {
 
                 // Returning the view containing InfoWindow contents
                 return v;
+            }
+
+            // Defines the contents of the InfoWindow
+            @Override
+            public View getInfoContents(final Marker arg0) {
+
+                return null;
 
             }
         });
@@ -211,7 +213,18 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             marker = mMap.addMarker(options);
-            mMap.animateCamera(cameraUpdate);
+            marker.setInfoWindowAnchor(0.3f, -0.1f);
+            mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                    marker.showInfoWindow();
+                }
+
+                @Override
+                public void onCancel() {
+
+                }
+            });
         }
     }
 

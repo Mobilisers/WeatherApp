@@ -2,28 +2,32 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/customborder"
+    android:padding="10dp"
     android:orientation="vertical">
 
     <TextView
         android:id="@+id/latlong"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="latlong"/>
+        android:text="latlong" />
 
     <TextView
         android:id="@+id/timezone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="timezone"/>
+        android:text="timezone" />
+
     <TextView
         android:id="@+id/utc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="utc"/>
+        android:text="utc" />
+
     <TextView
         android:id="@+id/localTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="local"/>
+        android:text="local" />
 
 </LinearLayout>
