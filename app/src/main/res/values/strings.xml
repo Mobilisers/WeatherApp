@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Weather Bug</string>
-    <string name="gps_network_not_enabled">needs access to Location services to work</string>
-    <string name="open_location_settings">Ok</string>
-    <string name="Cancel">Cancel</string>
+    <string name="gps_network_not_enabled">needs access to your device\'s location</string>
+    <string name="open_location_settings">Allow</string>
+    <string name="Cancel">Deny</string>
 </resources>

@@ -45,30 +45,22 @@ import java.util.concurrent.ExecutionException;
 public class MapsActivity extends FragmentActivity implements LocationListener {
 
     public static final int REQUEST_LOCATION = 100;
-    LocationManager locationManager;
-    LocationListener locationListener;
     static final String APPID = "c907b713e03148dd24a4ee70c9f83410";
     LocationServices locationServices;
-
+    public static final int DEFAULT_ZOOM_LEVEL = 10;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        this.locationServices.stopLocationUpdates();
-        this.locationServices = null;
+        this.locationServices = new LocationServices(this, this);
     }
 
     @Override
     protected void onResume() {
+        Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        this.locationServices = new LocationServices(this, this);
         setUpMapIfNeeded();
     }
 
@@ -94,21 +86,15 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
             // mMap.setMyLocationEnabled(true);
-            // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-
-                Location location = locationServices.getCurrentLocation();
-                if (location != null) {
-                    Log.e(getLocalClassName(), "recalculating location");
-                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-                    mMap.clear();
-                    MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
-                    mMap.addMarker(options);
-                    mMap.animateCamera(cameraUpdate);
-                }
+            Location location = locationServices.getCurrentLocation();
+            if (location != null) {
+                Log.e(getLocalClassName(), "recalculating location");
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
+            }else
+            {
+                Log.e(getLocalClassName(),"Current location is null");
             }
-
             setUpMap();
         }
     }
@@ -121,15 +107,17 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
      */
     private void setUpMap() {
 
+//        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+//            @Override
+//            public void onMapLoaded() {
+//
+//            }
+//        });
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                mMap.clear();
-                MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
-                mMap.addMarker(options);
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, mMap.getCameraPosition().zoom);
-                mMap.animateCamera(cameraUpdate);
-
+                drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
                 String url[] = new String[1];
                 url[0] = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 try {
@@ -212,15 +200,26 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
     }
 
 
-    public void drawMarkerAtLocation(Location location) {
-
-
+    public void drawMarkerAtLocation(LatLng latLng, float zoom) {
+        if (mMap != null) {
+            mMap.clear();
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
+            MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
+            mMap.addMarker(options);
+            mMap.animateCamera(cameraUpdate);
+        }
     }
 
     //XXXXXXXXXXXXXX
     @Override
     public void onLocationChanged(Location location) {
-
+        if (mMap != null) {
+            if (location != null) {
+                Log.e(getLocalClassName(), "recalculating location");
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
+            }
+        }
     }
 
     @Override
@@ -230,18 +229,12 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 
     @Override
     public void onProviderEnabled(String provider) {
-
         if (mMap != null) {
-
             Location location = locationServices.getCurrentLocation();
             if (location != null) {
                 Log.e(getLocalClassName(), "recalculating location");
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-                mMap.clear();
-                MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
-                mMap.addMarker(options);
-                mMap.animateCamera(cameraUpdate);
+                drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
             }
         }
     }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.util.Log;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Handler;
 
 /**
  * Created by nav on 3/9/16.
@@ -48,10 +50,9 @@ public class LocationServices implements LocationListener {
                     REQUEST_LOCATION);
         } else {
 
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10, 10, this);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 10, this);
 
         }
-
 
     }
 
@@ -66,7 +67,7 @@ public class LocationServices implements LocationListener {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_LOCATION);
         } else {
-            if (locationManager!=null) {
+            if (locationManager != null) {
                 locationManager.removeUpdates(this);
             }
         }
@@ -74,7 +75,7 @@ public class LocationServices implements LocationListener {
     }
 
     public android.location.Location getCurrentLocation() {
-
+        Log.e(getClass().getSimpleName(), "current location");
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // Check Permissions Now
@@ -84,9 +85,22 @@ public class LocationServices implements LocationListener {
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_LOCATION);
         } else {
-            if (locationManager!=null) {
-                return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+            List<String> providers = locationManager.getProviders(true);
+            Location bestLocation = null;
+            for (String provider : providers) {
+                Location l = locationManager.getLastKnownLocation(provider);
+                if (l == null) {
+                    continue;
+                }
+                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                    // Found best last known location: %s", l);
+                    bestLocation = l;
+                }
             }
+            Log.e(getClass().getSimpleName(), "location is "+bestLocation);
+
+            return bestLocation;
         }
         return null;
     }
