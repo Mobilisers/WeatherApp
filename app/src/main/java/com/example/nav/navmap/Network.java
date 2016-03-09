@@ -57,7 +57,7 @@ public class Network extends AsyncTask<String, String, String> {
         }
         else {
 
-            Toast.makeText(context, "Network Connection Not Availble", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Network Connection Not Availble", Toast.LENGTH_LONG).show();
             return null;
         }
     }

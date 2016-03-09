@@ -1,48 +1,24 @@
 package com.example.nav.navmap;
 
-import android.Manifest;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Debug;
-import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
-public class MapsActivity extends FragmentActivity implements LocationListener {
+public class MapsActivity extends FragmentActivity  {
 
     public static final int REQUEST_LOCATION = 100;
     static final String APPID = "c907b713e03148dd24a4ee70c9f83410";
@@ -54,14 +30,18 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        this.locationServices = new LocationServices(this, this);
+        this.locationServices = new LocationServices(this);
     }
 
     @Override
     protected void onResume() {
         Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        setUpMapIfNeeded();
+        if (!new Network(this).isNetworkAvailable()){
+            Toast.makeText(this, "Network Connection Not Availble", Toast.LENGTH_LONG).show();
+        }else {
+            setUpMapIfNeeded();
+        }
     }
 
     /**
@@ -86,15 +66,18 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
             // mMap.setMyLocationEnabled(true);
-            Location location = locationServices.getCurrentLocation();
-            if (location != null) {
-                Log.e(getLocalClassName(), "recalculating location");
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
-            }else
-            {
-                Log.e(getLocalClassName(),"Current location is null");
-            }
+            locationServices.getCurrentDeviceLocation(new LocationServicesInterface() {
+                @Override
+                public void deviceLocation(Location location) {
+                    if (mMap != null) {
+                        if (location != null) {
+                            Log.e(getLocalClassName(), "recalculating location");
+                            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                            drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
+                        }
+                    }
+                }
+            });
             setUpMap();
         }
     }
@@ -210,37 +193,4 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
         }
     }
 
-    //XXXXXXXXXXXXXX
-    @Override
-    public void onLocationChanged(Location location) {
-        if (mMap != null) {
-            if (location != null) {
-                Log.e(getLocalClassName(), "recalculating location");
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
-            }
-        }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-        if (mMap != null) {
-            Location location = locationServices.getCurrentLocation();
-            if (location != null) {
-                Log.e(getLocalClassName(), "recalculating location");
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                drawMarkerAtLocation(latLng, DEFAULT_ZOOM_LEVEL);
-            }
-        }
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 }

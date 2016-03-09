@@ -19,24 +19,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Handler;
 
-/**
- * Created by nav on 3/9/16.
- */
 public class LocationServices implements LocationListener {
 
     public static final int REQUEST_LOCATION = 100;
 
     LocationManager locationManager;
 
+    Location lastKnownDeviceLocation;
+
     Activity activity;
 
-    LocationListener listener;
+    LocationServicesInterface callback;
 
-    public LocationServices(Activity activity, LocationListener listener) {
+    public LocationServices(Activity activity) {
 
         this.activity = activity;
-
-        this.listener = listener;
 
         locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
 
@@ -74,7 +71,16 @@ public class LocationServices implements LocationListener {
 
     }
 
-    public android.location.Location getCurrentLocation() {
+    public void getCurrentDeviceLocation(LocationServicesInterface callback) {
+        if (lastKnownDeviceLocation != null) {
+            callback.deviceLocation(lastKnownDeviceLocation);
+        } else {
+            this.callback = callback;
+        }
+
+    }
+
+    private android.location.Location getBestKnownLastLocation() {
         Log.e(getClass().getSimpleName(), "current location");
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -98,7 +104,7 @@ public class LocationServices implements LocationListener {
                     bestLocation = l;
                 }
             }
-            Log.e(getClass().getSimpleName(), "location is "+bestLocation);
+            Log.e(getClass().getSimpleName(), "location is " + bestLocation);
 
             return bestLocation;
         }
@@ -107,23 +113,27 @@ public class LocationServices implements LocationListener {
 
     @Override
     public void onLocationChanged(android.location.Location location) {
-        this.listener.onLocationChanged(location);
-
+        if (lastKnownDeviceLocation == null) {
+            lastKnownDeviceLocation = location;
+            if (callback!=null) {
+                this.callback.deviceLocation(lastKnownDeviceLocation);
+                callback = null;
+            }
+        }
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        this.listener.onStatusChanged(provider, status, extras);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-        this.listener.onProviderEnabled(provider);
+        lastKnownDeviceLocation = getBestKnownLastLocation();
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-        this.listener.onProviderDisabled(provider);
+        lastKnownDeviceLocation = null;
         Log.e(getClass().getSimpleName(), "location provider is disabled");
 
         AlertDialog.Builder dialog = new AlertDialog.Builder(activity);
@@ -153,4 +163,5 @@ public class LocationServices implements LocationListener {
         int stringId = context.getApplicationInfo().labelRes;
         return context.getString(stringId) + " ";
     }
+
 }
