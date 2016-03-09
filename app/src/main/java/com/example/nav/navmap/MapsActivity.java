@@ -44,58 +44,31 @@ import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity implements LocationListener {
 
-    private static final int REQUEST_LOCATION = 100;
+    public static final int REQUEST_LOCATION = 100;
     LocationManager locationManager;
     LocationListener locationListener;
     static final String APPID = "c907b713e03148dd24a4ee70c9f83410";
+    LocationServices locationServices;
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_maps);
-
-        setUpMapIfNeeded();
-
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            Log.e(getLocalClassName(), "Requesting permission");
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_LOCATION);
-        } else {
-
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 10, this);
-
-        }
-
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_LOCATION) {
-            if (grantResults.length == 1
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // We can now safely use the API we requested access to
-
-                //  locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-            } else {
-                // Permission was denied or request was cancelled
-            }
-        }
+    protected void onPause() {
+        super.onPause();
+        this.locationServices.stopLocationUpdates();
+        this.locationServices = null;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        this.locationServices = new LocationServices(this, this);
         setUpMapIfNeeded();
     }
 
@@ -124,7 +97,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
             // Check if we were successful in obtaining the map.
             if (mMap != null) {
 
-                Location location = getCurrentLocation();
+                Location location = locationServices.getCurrentLocation();
                 if (location != null) {
                     Log.e(getLocalClassName(), "recalculating location");
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -138,25 +111,6 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 
             setUpMap();
         }
-    }
-
-    public Location getCurrentLocation() {
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Check Permissions Now
-            Log.e(getLocalClassName(), "Requesting permission");
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_LOCATION);
-        } else {
-
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-            return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        }
-        return null;
     }
 
     /**
@@ -251,24 +205,22 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 //        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
 //
 //            @Override
-//            public void onMyLocationChange(Location arg0) {
+//            public void onMyLocationChange(LocationServices arg0) {
 //
 //            }
 //        });
     }
 
+
+    public void drawMarkerAtLocation(Location location) {
+
+
+    }
+
+    //XXXXXXXXXXXXXX
     @Override
     public void onLocationChanged(Location location) {
 
-//        if (mMap != null) {
-//            Log.e(getLocalClassName(), "location changed");
-//            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-//            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
-//            mMap.clear();
-//            MarkerOptions options = new MarkerOptions().position(latLng).title("Marker");
-//            mMap.addMarker(options);
-//            mMap.animateCamera(cameraUpdate);
-//        }
     }
 
     @Override
@@ -281,7 +233,7 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
 
         if (mMap != null) {
 
-            Location location = getCurrentLocation();
+            Location location = locationServices.getCurrentLocation();
             if (location != null) {
                 Log.e(getLocalClassName(), "recalculating location");
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -297,33 +249,5 @@ public class MapsActivity extends FragmentActivity implements LocationListener {
     @Override
     public void onProviderDisabled(String provider) {
 
-        Log.e(getLocalClassName(), "location provider is disabled");
-
-        AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setMessage(getApplicationName(getApplicationContext()) + getApplicationContext().getResources().getString(R.string.gps_network_not_enabled));
-        dialog.setPositiveButton(getApplicationContext().getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                // TODO Auto-generated method stub
-                Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                myIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getApplicationContext().startActivity(myIntent);
-                //get gps
-            }
-        });
-        dialog.setNegativeButton(getApplicationContext().getString(R.string.Cancel), new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                // TODO Auto-generated method stub
-
-            }
-        });
-        dialog.show();
-    }
-
-    public static String getApplicationName(Context context) {
-        int stringId = context.getApplicationInfo().labelRes;
-        return context.getString(stringId) + " ";
     }
 }
