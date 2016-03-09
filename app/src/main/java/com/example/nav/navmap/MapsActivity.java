@@ -4,6 +4,8 @@ import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -11,19 +13,23 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 
 public class MapsActivity extends FragmentActivity {
 
     //cache last location of marker
-    static LatLng latestMarkerLocation;
+    static LatLng lastKnownMarkerLocation;
     public static final int REQUEST_LOCATION = 100;
-    static final String APPID = "c907b713e03148dd24a4ee70c9f83410";
+    public static final String APPID = "c907b713e03148dd24a4ee70c9f83410";
     LocationServices locationServices;
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -74,9 +80,9 @@ public class MapsActivity extends FragmentActivity {
             setUpMap();
         }
 
-        Log.e(getLocalClassName(), "last known location " + latestMarkerLocation);
+        Log.e(getLocalClassName(), "last known location " + lastKnownMarkerLocation);
 
-        if (latestMarkerLocation == null) {
+        if (lastKnownMarkerLocation == null) {
             locationServices.getCurrentDeviceLocation(new LocationServicesInterface() {
                 @Override
                 public void deviceLocation(Location location) {
@@ -88,7 +94,7 @@ public class MapsActivity extends FragmentActivity {
                 }
             });
         } else {
-            drawMarkerAtLocation(latestMarkerLocation, mMap.getCameraPosition().zoom);
+            drawMarkerAtLocation(lastKnownMarkerLocation, mMap.getCameraPosition().zoom);
         }
     }
 
@@ -110,7 +116,7 @@ public class MapsActivity extends FragmentActivity {
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                latestMarkerLocation = latLng;
+                lastKnownMarkerLocation = latLng;
                 drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
                 String url[] = new String[1];
                 url[0] = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
@@ -132,7 +138,7 @@ public class MapsActivity extends FragmentActivity {
             }
         });
 
- /*       // Setting a custom info window adapter for the google map
+        // Setting a custom info window adapter for the google map
         mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
 
             // Use default InfoWindow frame
@@ -149,7 +155,12 @@ public class MapsActivity extends FragmentActivity {
                 View v = getLayoutInflater().inflate(R.layout.infowindow, null);
 
                 // Getting the position from the marker
-                LatLng latLng = arg0.getPosition();
+                LatLng latLng;
+                if (lastKnownMarkerLocation == null) {
+                    latLng = arg0.getPosition();
+                } else {
+                    latLng = lastKnownMarkerLocation;
+                }
 
                 // Getting reference to the TextView to set latitude and longitude
                 TextView tvLatLng = (TextView) v.findViewById(R.id.latlong);
@@ -182,17 +193,17 @@ public class MapsActivity extends FragmentActivity {
 
             }
         });
-*/
 
-        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-            @Override
-            public void onMyLocationChange(Location location) {
-                if (latestMarkerLocation == null) {
-                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
-                }
-            }
-        });
+
+//        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+//            @Override
+//            public void onMyLocationChange(Location location) {
+//                if (lastKnownMarkerLocation == null) {
+//                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+//                    drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+//                }
+//            }
+//        });
 
     }
 
