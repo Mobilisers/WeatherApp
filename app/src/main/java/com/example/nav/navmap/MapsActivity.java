@@ -75,10 +75,19 @@ public class MapsActivity extends FragmentActivity {
             // Try to obtain the map from the SupportMapFragment.
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_LEVEL));
             mMap.setMyLocationEnabled(true);
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_LEVEL), new GoogleMap.CancelableCallback() {
+                @Override
+                public void onFinish() {
+                    setUpMap();
+                }
 
-            setUpMap();
+                @Override
+                public void onCancel() {
+
+                }
+            });
+
         }
 
         Log.e(getLocalClassName(), "last known location " + lastKnownMarkerLocation);
@@ -213,10 +222,10 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             marker = mMap.addMarker(options);
-            marker.setInfoWindowAnchor(0.3f, -0.1f);
             mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
+                    marker.setInfoWindowAnchor(0.3f, -0.1f);
                     marker.showInfoWindow();
                 }
 
