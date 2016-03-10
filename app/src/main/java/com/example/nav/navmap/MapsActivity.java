@@ -40,7 +40,6 @@ public class MapsActivity extends FragmentActivity {
     LocationServices locationServices;
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    Marker marker;
     public static final String DEGREE  = "\u00b0";
 
     @Override
@@ -84,17 +83,9 @@ public class MapsActivity extends FragmentActivity {
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
                     .getMap();
             mMap.setMyLocationEnabled(true);
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_LEVEL), new GoogleMap.CancelableCallback() {
-                @Override
-                public void onFinish() {
-                    setUpMap();
-                }
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_LEVEL));
 
-                @Override
-                public void onCancel() {
-
-                }
-            });
+            setUpMap();
 
         }
 
@@ -238,7 +229,7 @@ public class MapsActivity extends FragmentActivity {
             mMap.clear();
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
-            marker = mMap.addMarker(options);
+            final Marker marker = mMap.addMarker(options);
             mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
