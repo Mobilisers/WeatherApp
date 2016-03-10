@@ -105,32 +105,36 @@ public class NetworkServices extends AsyncTask<String, String, String> {
      * @return the Bitmap retrieved
      */
     public Bitmap getBitmapFromUrl(final String img_url) {
-        try {
-            return new AsyncTask<Void, Bitmap, Bitmap>() {
-                @Override
-                protected Bitmap doInBackground(Void... params) {
-                    Bitmap bmp = null;
-                    try {
-                        URL url = new URL(img_url);
-                        bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        if (isNetworkAvailable()) {
+            try {
+                return new AsyncTask<Void, Bitmap, Bitmap>() {
+                    @Override
+                    protected Bitmap doInBackground(Void... params) {
+                        Bitmap bmp = null;
+                        try {
+                            URL url = new URL(img_url);
+                            bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        return bmp;
                     }
-                    return bmp;
-                }
 
-                @Override
-                protected void onPostExecute(Bitmap aVoid) {
-                    super.onPostExecute(aVoid);
-                }
+                    @Override
+                    protected void onPostExecute(Bitmap aVoid) {
+                        super.onPostExecute(aVoid);
+                    }
 
-            }.execute().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+                }.execute().get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(context, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
         }
         return null;
     }
