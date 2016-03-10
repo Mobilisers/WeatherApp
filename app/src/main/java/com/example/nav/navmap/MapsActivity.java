@@ -160,7 +160,7 @@ public class MapsActivity extends FragmentActivity {
                 final TextView windDeg = (TextView) v.findViewById(R.id.windDeg);
                 final ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
 
-                String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+                final String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
                     @Override
                     public void result(String string) throws JSONException {
@@ -183,10 +183,26 @@ public class MapsActivity extends FragmentActivity {
                                 press.setText("" + main.getPressure() + " hPa");
                                 windSpeed.setText("" + wind.getSpeed() + " mps");
                                 windDeg.setText("" + wind.getDeg() + DEGREE);
-                                if (weather.getIcon() != null && weather.getIcon().getBytes().length > 0) {
-                                    Bitmap img = BitmapFactory.decodeByteArray(weather.getIcon().getBytes(), 0, weather.getIcon().getBytes().length);
-                                    imgView.setImageBitmap(img);
-                                }
+                                String url = IMG_URL+weather.getIcon()+".png";
+                                new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+                                    @Override
+                                    public void result(String string) throws JSONException {
+                                        if (string!=null) {
+                                            Bitmap img = new ImageUtil().StringToBitMap(string);
+                                            Log.e(getLocalClassName(), "retrieving image " + img);
+                                            imgView.setImageBitmap(img);
+                                            imgView.setVisibility(View.VISIBLE);
+                                        }else {
+                                            Log.e(getLocalClassName(),"image retrieved is null");
+                                            imgView.setVisibility(View.GONE);
+                                        }
+                                        /*if (string != null && string.getBytes().length > 0) {
+                                            Bitmap img = BitmapFactory.decodeByteArray(string.getBytes(), 0, string.getBytes().length);
+                                            imgView.setImageBitmap(img);
+                                        }*/
+                                    }
+                                });
+
                             } catch (Exception e) {
 
                                 e.printStackTrace();
