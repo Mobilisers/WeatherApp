@@ -58,7 +58,7 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        if (!new NetworkServices(this).isNetworkAvailable()) {
+        if (!new NetworkServices(null,this,null).isNetworkAvailable()) {
             Toast.makeText(this, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
         } else {
             setUpMapIfNeeded();

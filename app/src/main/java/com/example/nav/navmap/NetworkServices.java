@@ -26,22 +26,27 @@ public class NetworkServices extends AsyncTask<String, String, String> {
     HttpURLConnection urlConnection;
     Context context;
 
-    public NetworkServices(Context context){
-        this.context = context;
-    }
-
+    /**
+     * Use this constructor to make async network calls or to check network reachability.
+     * To get the results of an async request listen to the callback via NetworkServicesListener.
+     * @param url the url to request
+     * @param context context in which to run the network call
+     * @param callback the callback which implements NetworkServicesListener
+     */
     public NetworkServices(String url, Context context, NetworkServicesInterface callback) {
         this.context = context;
-        String urls[] = new String[1];
-        urls[0] = url;
-        try {
-            callback.result(execute(url).get());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (callback!=null&url!=null) {
+            String urls[] = new String[1];
+            urls[0] = url;
+            try {
+                callback.result(execute(url).get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
