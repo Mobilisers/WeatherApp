@@ -40,7 +40,7 @@ public class MapsActivity extends FragmentActivity {
     LocationServices locationServices;
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    static Marker marker;
+    Marker marker;
     public static final String DEGREE  = "\u00b0";
 
     @Override
