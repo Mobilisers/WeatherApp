@@ -44,7 +44,7 @@ public class MapsActivity extends FragmentActivity {
     LocationServices locationServices;
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    public static final String DEGREE  = "\u00b0";
+    public static final String DEGREE = "\u00b0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,31 +160,38 @@ public class MapsActivity extends FragmentActivity {
                 final TextView windDeg = (TextView) v.findViewById(R.id.windDeg);
                 final ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
 
-                String url = BASE_URL+"lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+                String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
                     @Override
                     public void result(String string) throws JSONException {
                         if (string != null) {
-                            Gson gson = new GsonBuilder().create();
-                            Root root = gson.fromJson(string, Root.class);
+                            try {
+                                Gson gson = new GsonBuilder().create();
+                                Root root = gson.fromJson(string, Root.class);
 //                            JSONObject json = new JSONObject(string);
 //                            JSONArray array = json.getJSONArray("weather");
 //                            JSONObject object = (JSONObject) array.get(0);
-                            //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
-                            Log.e(getLocalClassName(), string);
-                            //tvLatLng.setText("Weather: " + object.getString("description"));
-                            Weather weather = root.getWeather()[0];
-                            Main main = root.getMain();
-                            Wind wind = root.getWind();
-                            condDescr.setText(weather.getMain() + " (" + weather.getDescription() + ")");
-                            temp.setText("" + Math.round((Double.valueOf(main.getTemp()) - 273.15)) + DEGREE+"C");
-                            hum.setText("" + main.getHumidity() + "%");
-                            press.setText("" + main.getPressure() + " hPa");
-                            windSpeed.setText("" + wind.getSpeed() + " mps");
-                            windDeg.setText("" + wind.getDeg() + DEGREE);
-                            if (weather.getIcon() != null && weather.getIcon().getBytes().length > 0) {
-                                Bitmap img = BitmapFactory.decodeByteArray(weather.getIcon().getBytes(), 0, weather.getIcon().getBytes().length);
-                                imgView.setImageBitmap(img);
+                                //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
+                                Log.e(getLocalClassName(), string);
+                                //tvLatLng.setText("Weather: " + object.getString("description"));
+                                Weather weather = root.getWeather()[0];
+                                Main main = root.getMain();
+                                Wind wind = root.getWind();
+                                condDescr.setText(weather.getMain() + " (" + weather.getDescription() + ")");
+                                temp.setText("" + Math.round((Double.valueOf(main.getTemp()) - 273.15)) + DEGREE + "C");
+                                hum.setText("" + main.getHumidity() + "%");
+                                press.setText("" + main.getPressure() + " hPa");
+                                windSpeed.setText("" + wind.getSpeed() + " mps");
+                                windDeg.setText("" + wind.getDeg() + DEGREE);
+                                if (weather.getIcon() != null && weather.getIcon().getBytes().length > 0) {
+                                    Bitmap img = BitmapFactory.decodeByteArray(weather.getIcon().getBytes(), 0, weather.getIcon().getBytes().length);
+                                    imgView.setImageBitmap(img);
+                                }
+                            } catch (Exception e) {
+
+                                e.printStackTrace();
+                                Toast.makeText(getApplicationContext(), "Some error happened, please relaunch the app", Toast.LENGTH_LONG).show();
+
                             }
                         }
                     }
@@ -241,18 +248,18 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             final Marker marker = mMap.addMarker(options);
+//            mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
+//                @Override
+//                public void onFinish() {
+//                }
+//
+//                @Override
+//                public void onCancel() {
+//
+//                }
+//            });
+            mMap.animateCamera(cameraUpdate);
             marker.setInfoWindowAnchor(0.3f, -0.1f);
-            mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
-                @Override
-                public void onFinish() {
-                }
-
-                @Override
-                public void onCancel() {
-
-                }
-            });
-
             marker.showInfoWindow();
 
         }
@@ -261,7 +268,7 @@ public class MapsActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (locationServices!=null){
+        if (locationServices != null) {
             locationServices.stopLocationUpdates();
             locationServices = null;
         }
