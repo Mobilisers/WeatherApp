@@ -241,11 +241,10 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             final Marker marker = mMap.addMarker(options);
+            marker.setInfoWindowAnchor(0.3f, -0.1f);
             mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
-                    marker.setInfoWindowAnchor(0.3f, -0.1f);
-                    marker.showInfoWindow();
                 }
 
                 @Override
@@ -253,6 +252,9 @@ public class MapsActivity extends FragmentActivity {
 
                 }
             });
+
+            marker.showInfoWindow();
+
         }
     }
 
