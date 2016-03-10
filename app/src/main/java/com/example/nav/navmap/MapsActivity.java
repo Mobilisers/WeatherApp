@@ -169,12 +169,10 @@ public class MapsActivity extends FragmentActivity {
                     e.printStackTrace();
                 }
                 if (addresses != null && addresses.size() > 0) {
-                    String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
                     String city = addresses.get(0).getLocality();
                     String state = addresses.get(0).getAdminArea();
+                    String zip = addresses.get(0).getPostalCode();
                     String country = addresses.get(0).getCountryName();
-                    String postalCode = addresses.get(0).getPostalCode();
-                    String knownName = addresses.get(0).getFeatureName(); // Only if available else return NULL
                     if (country != null) {
                         if (state == null) {
                             cityText.setText(country);
