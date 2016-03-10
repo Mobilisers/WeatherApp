@@ -16,8 +16,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
@@ -28,6 +30,7 @@ public class NetworkServices extends AsyncTask<String, String, String> {
 
     HttpURLConnection urlConnection;
     Context context;
+    NetworkServicesInterface callback;
     final static String INTERNET_NOT_AVAILABLE = "Internet connection not available";
 
     /**
@@ -50,13 +53,8 @@ public class NetworkServices extends AsyncTask<String, String, String> {
         if (callback != null & url != null) {
             String urls[] = new String[1];
             urls[0] = url;
-            try {
-                callback.Result(execute(url).get());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
+            this.callback = callback;
+            execute(url);
         }
     }
 
@@ -64,30 +62,56 @@ public class NetworkServices extends AsyncTask<String, String, String> {
     protected String doInBackground(String... params) {
         if (isNetworkAvailable()) {
             StringBuilder result = new StringBuilder();
-
+            InputStream in = null;
+            BufferedReader reader = null;
             try {
                 URL url = new URL(params[0]);
+                //fix for escaping spaces that results in malformed url
+                URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+                url = uri.toURL();
                 Log.e(getClass().getSimpleName(), "making async call to " + url);
                 urlConnection = (HttpURLConnection) url.openConnection();
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                urlConnection.setInstanceFollowRedirects(true);
+                if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                    in = new BufferedInputStream(urlConnection.getInputStream());
+                    reader = new BufferedReader(new InputStreamReader(in));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    result.append(line);
+                } else {
+                    Log.e(getClass().getSimpleName(), "HTTP ERROR CODE " + urlConnection.getResponseCode() + " " + urlConnection.getResponseMessage());
+                    in = new BufferedInputStream(urlConnection.getInputStream());
+                    reader = new BufferedReader(new InputStreamReader(in));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+                    }
+                    Log.e(getClass().getSimpleName(), "Error: " + line);
                 }
 
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 urlConnection.disconnect();
+                if (in != null) {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-
-
             return result.toString();
         } else {
-
             Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
             return null;
         }
@@ -96,7 +120,10 @@ public class NetworkServices extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-        //Do anything with response..
+        if (this.callback != null & result.length() > 0) {
+            this.callback.Result(result);
+            this.callback = null;
+        }
     }
 
     /**
