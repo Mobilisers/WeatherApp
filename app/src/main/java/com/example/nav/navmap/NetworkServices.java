@@ -28,6 +28,7 @@ public class NetworkServices extends AsyncTask<String, String, String> {
 
     HttpURLConnection urlConnection;
     Context context;
+    final static String INTERNET_NOT_AVAILABLE = "Internet connection not available";
 
     /**
      * Class that provides network services.
@@ -87,7 +88,7 @@ public class NetworkServices extends AsyncTask<String, String, String> {
             return result.toString();
         } else {
 
-            Toast.makeText(context, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
             return null;
         }
     }
@@ -134,7 +135,7 @@ public class NetworkServices extends AsyncTask<String, String, String> {
                 e.printStackTrace();
             }
         } else {
-            Toast.makeText(context, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
+            Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
         }
         return null;
     }
@@ -152,7 +153,9 @@ public class NetworkServices extends AsyncTask<String, String, String> {
         // otherwise check if we are connected
         if (networkInfo != null && networkInfo.isConnected()) {
             return true;
+        } else {
+            Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
+            return false;
         }
-        return false;
     }
 }

@@ -59,9 +59,7 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        if (!new NetworkServices(this).isNetworkAvailable()) {
-            Toast.makeText(this, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
-        } else {
+        if (new NetworkServices(this).isNetworkAvailable()) {
             setUpMapIfNeeded();
         }
     }
@@ -155,7 +153,7 @@ public class MapsActivity extends FragmentActivity {
                 Wind wind = root.getWind();
                 Sys sys = root.getSys();
                 condDescr.setText(weather.getMain() + " (" + weather.getDescription() + ")");
-                temp.setText("" + Math.round((Double.valueOf(main.getTemp()) - 273.15)) + DEGREE + "C");
+                temp.setText("" + Math.round(Double.valueOf(main.getTemp()) - 273.15) + DEGREE + "C");
                 hum.setText("" + main.getHumidity() + "%");
                 press.setText("" + main.getPressure() + " hPa");
                 windSpeed.setText("" + wind.getSpeed() + " mps");
