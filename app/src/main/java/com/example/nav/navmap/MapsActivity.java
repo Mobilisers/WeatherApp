@@ -51,6 +51,7 @@ public class MapsActivity extends FragmentActivity {
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     public static final String DEGREE = "\u00b0";
+    Root root;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +146,7 @@ public class MapsActivity extends FragmentActivity {
 
             // Use default InfoWindow frame
             @Override
-            public View getInfoWindow(Marker arg0) {
+            public View getInfoWindow(final Marker arg0) {
                 // Getting view from the layout file info_window_layout
                 View v = getLayoutInflater().inflate(R.layout.infowindow, null);
                 // Getting the position from the marker
@@ -163,63 +164,18 @@ public class MapsActivity extends FragmentActivity {
                 final TextView windSpeed = (TextView) v.findViewById(R.id.windSpeed);
                 final TextView windDeg = (TextView) v.findViewById(R.id.windDeg);
                 final ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
-                final String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
-                new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
-                    @Override
-                    public void result(String string) throws JSONException {
-                        if (string != null) {
-                            try {
-                                Gson gson = new GsonBuilder().create();
-                                Root root = gson.fromJson(string, Root.class);
-                                Log.e(getLocalClassName(), string);
-                                Weather weather = root.getWeather()[0];
-                                Main main = root.getMain();
-                                Wind wind = root.getWind();
-                                condDescr.setText(weather.getMain() + " (" + weather.getDescription() + ")");
-                                temp.setText("" + Math.round((Double.valueOf(main.getTemp()) - 273.15)) + DEGREE + "C");
-                                hum.setText("" + main.getHumidity() + "%");
-                                press.setText("" + main.getPressure() + " hPa");
-                                windSpeed.setText("" + wind.getSpeed() + " mps");
-                                windDeg.setText("" + wind.getDeg() + DEGREE);
-                                final String img_url = "http://www.keenthemes.com/preview/conquer/assets/plugins/jcrop/demos/demo_files/image1.jpg";//IMG_URL+weather.getIcon()+".png";
-                                imgView.setImageDrawable(getResources().getDrawable(R.drawable.wally));
-
-                                new AsyncTask<Void, Bitmap, Bitmap>() {
-                                    @Override
-                                    protected Bitmap doInBackground(Void... params) {
-                                        URL url = null;
-                                        Bitmap bmp = null;
-                                        try {
-                                            url = new URL(img_url);
-
-                                            bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                                        } catch (MalformedURLException e) {
-                                            e.printStackTrace();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                        return bmp;
-                                    }
-
-                                    @Override
-                                    protected void onPostExecute(Bitmap aVoid) {
-                                        super.onPostExecute(aVoid);
-                                        Log.e(getLocalClassName(), imgView + " " + aVoid);
-                                        imgView.setImageBitmap(aVoid);
-                                    }
-
-                                }.execute();
-
-                            } catch (Exception e) {
-
-                                e.printStackTrace();
-                                Toast.makeText(getApplicationContext(), "Some error happened, please relaunch the app", Toast.LENGTH_LONG).show();
-
-                            }
-                        }
-                    }
-                });
-
+                Weather weather = root.getWeather()[0];
+                Main main = root.getMain();
+                Wind wind = root.getWind();
+                condDescr.setText(weather.getMain() + " (" + weather.getDescription() + ")");
+                temp.setText("" + Math.round((Double.valueOf(main.getTemp()) - 273.15)) + DEGREE + "C");
+                hum.setText("" + main.getHumidity() + "%");
+                press.setText("" + main.getPressure() + " hPa");
+                windSpeed.setText("" + wind.getSpeed() + " mps");
+                windDeg.setText("" + wind.getDeg() + DEGREE);
+                //imgView.setImageDrawable(getResources().getDrawable(R.drawable.wally));
+                Log.e(getLocalClassName(), imgView + " " + weather.getIcon());
+                imgView.setImageBitmap(new ImageUtil().StringToBitMap(weather.getIcon()));
                 // Returning the view containing InfoWindow contents
                 return v;
             }
@@ -227,7 +183,6 @@ public class MapsActivity extends FragmentActivity {
             // Defines the contents of the InfoWindow
             @Override
             public View getInfoContents(final Marker arg0) {
-
                 return null;
 
             }
@@ -246,8 +201,53 @@ public class MapsActivity extends FragmentActivity {
             final Marker marker = mMap.addMarker(options);
             mMap.animateCamera(cameraUpdate);
             marker.setInfoWindowAnchor(0.3f, -0.1f);
-            marker.showInfoWindow();
+            final String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+            new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+                @Override
+                public void result(String string) throws JSONException {
+                    if (string != null) {
+                        try {
+                            Gson gson = new GsonBuilder().create();
+                            root = gson.fromJson(string, Root.class);
+                            final Weather weather = root.getWeather()[0];
+                            Log.e(getLocalClassName(), string);
+                            final String img_url = IMG_URL+weather.getIcon()+".png";
 
+                            new AsyncTask<Void, Bitmap, Bitmap>() {
+                                @Override
+                                protected Bitmap doInBackground(Void... params) {
+                                    URL url = null;
+                                    Bitmap bmp = null;
+                                    try {
+                                        url = new URL(img_url);
+
+                                        bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                                    } catch (MalformedURLException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return bmp;
+                                }
+
+                                @Override
+                                protected void onPostExecute(Bitmap aVoid) {
+                                    super.onPostExecute(aVoid);
+                                    weather.setIcon(new ImageUtil().BitMapToString(aVoid));
+                                    marker.showInfoWindow();
+                                }
+
+                            }.execute();
+
+                        } catch (Exception e) {
+
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(), "Some error happened, please relaunch the app", Toast.LENGTH_LONG).show();
+
+                        }
+                    }
+                }
+            });
         }
     }
 
