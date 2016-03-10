@@ -3,6 +3,9 @@ package com.example.nav.navmap;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -29,6 +32,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -183,25 +189,53 @@ public class MapsActivity extends FragmentActivity {
                                 press.setText("" + main.getPressure() + " hPa");
                                 windSpeed.setText("" + wind.getSpeed() + " mps");
                                 windDeg.setText("" + wind.getDeg() + DEGREE);
-                                String url = IMG_URL+weather.getIcon()+".png";
-                                new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+                                final String img_url = "http://www.keenthemes.com/preview/conquer/assets/plugins/jcrop/demos/demo_files/image1.jpg";//IMG_URL+weather.getIcon()+".png";
+                                imgView.setImageDrawable(getResources().getDrawable(R.drawable.wally));
+
+                                new AsyncTask<Void, Bitmap, Bitmap>(){
                                     @Override
-                                    public void result(String string) throws JSONException {
-                                        if (string!=null) {
-                                            Bitmap img = new ImageUtil().StringToBitMap(string);
-                                            Log.e(getLocalClassName(), "retrieving image " + img);
-                                            imgView.setImageBitmap(img);
-                                            imgView.setVisibility(View.VISIBLE);
-                                        }else {
-                                            Log.e(getLocalClassName(),"image retrieved is null");
-                                            imgView.setVisibility(View.GONE);
+                                    protected Bitmap doInBackground(Void... params) {
+                                        URL url= null;
+                                        Bitmap bmp =null;
+                                        try {
+                                            url = new URL(img_url);
+
+                                       bmp =BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                                        } catch (MalformedURLException e) {
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
                                         }
-                                        /*if (string != null && string.getBytes().length > 0) {
-                                            Bitmap img = BitmapFactory.decodeByteArray(string.getBytes(), 0, string.getBytes().length);
-                                            imgView.setImageBitmap(img);
-                                        }*/
+                                        return bmp;
                                     }
-                                });
+
+                                    @Override
+                                    protected void onPostExecute(Bitmap aVoid) {
+                                        super.onPostExecute(aVoid);
+                                        Log.e(getLocalClassName(), imgView +" "+ aVoid);
+                                                imgView.setImageBitmap(aVoid);
+                                            }
+
+                                }.execute();
+
+//                                new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+//                                    @Override
+//                                    public void result(String string) throws JSONException {
+//                                        if (string!=null) {
+//                                            Bitmap img = new ImageUtil().StringToBitMap(string);
+//                                            Log.e(getLocalClassName(), "retrieving image " + img);
+//                                            imgView.setImageBitmap(img);
+//                                            imgView.setVisibility(View.VISIBLE);
+//                                        }else {
+//                                            Log.e(getLocalClassName(),"image retrieved is null");
+//                                            imgView.setVisibility(View.GONE);
+//                                        }
+//                                        /*if (string != null && string.getBytes().length > 0) {
+//                                            Bitmap img = BitmapFactory.decodeByteArray(string.getBytes(), 0, string.getBytes().length);
+//                                            imgView.setImageBitmap(img);
+//                                        }*/
+//                                    }
+//                                });
 
                             } catch (Exception e) {
 
