@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +47,7 @@ public class MapsActivity extends FragmentActivity {
     GeographicInformation geographicInformation;
     Root root;
     Marker marker;
+    static boolean refreshMarkerLocation = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,19 +96,21 @@ public class MapsActivity extends FragmentActivity {
 
         Log.e(getLocalClassName(), "last known location " + lastKnownMarkerLocation);
 
-        if (lastKnownMarkerLocation == null) {
-            locationServices.getCurrentDeviceLocation(new LocationServicesInterface() {
-                @Override
-                public void deviceLocation(Location location) {
-                    if (location != null) {
-                        Log.e(getLocalClassName(), "recalculating location");
-                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+        if (refreshMarkerLocation) {
+            if (lastKnownMarkerLocation == null) {
+                locationServices.getCurrentDeviceLocation(new LocationServicesInterface() {
+                    @Override
+                    public void deviceLocation(Location location) {
+                        if (location != null) {
+                            Log.e(getLocalClassName(), "recalculating location");
+                            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                            drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+                        }
                     }
-                }
-            });
-        } else {
-            drawMarkerAtLocation(lastKnownMarkerLocation, mMap.getCameraPosition().zoom);
+                });
+            } else {
+                drawMarkerAtLocation(lastKnownMarkerLocation, mMap.getCameraPosition().zoom);
+            }
         }
     }
 
@@ -123,11 +127,14 @@ public class MapsActivity extends FragmentActivity {
                 if (marker == null) {
                     lastKnownMarkerLocation = latLng;
                     drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+                    refreshMarkerLocation = true;
                 } else {
                     if (marker.isInfoWindowShown()) {
                         lastKnownMarkerLocation = latLng;
                         drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+                        refreshMarkerLocation = true;
                     } else {
+                        refreshMarkerLocation = false;
                         lastKnownMarkerLocation = null;
                         mMap.clear();
                         marker = null;
