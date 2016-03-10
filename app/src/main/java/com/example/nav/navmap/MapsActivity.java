@@ -64,7 +64,7 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        if (!new NetworkServices(null,this,null).isNetworkAvailable()) {
+        if (!new NetworkServices(null, this, null).isNetworkAvailable()) {
             Toast.makeText(this, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
         } else {
             setUpMapIfNeeded();
@@ -148,7 +148,6 @@ public class MapsActivity extends FragmentActivity {
             public View getInfoWindow(Marker arg0) {
                 // Getting view from the layout file info_window_layout
                 View v = getLayoutInflater().inflate(R.layout.infowindow, null);
-
                 // Getting the position from the marker
                 LatLng latLng;
                 if (lastKnownMarkerLocation == null) {
@@ -156,7 +155,6 @@ public class MapsActivity extends FragmentActivity {
                 } else {
                     latLng = lastKnownMarkerLocation;
                 }
-
                 TextView cityText = (TextView) v.findViewById(R.id.cityText);
                 final TextView condDescr = (TextView) v.findViewById(R.id.condDescr);
                 final TextView temp = (TextView) v.findViewById(R.id.temp);
@@ -165,7 +163,6 @@ public class MapsActivity extends FragmentActivity {
                 final TextView windSpeed = (TextView) v.findViewById(R.id.windSpeed);
                 final TextView windDeg = (TextView) v.findViewById(R.id.windDeg);
                 final ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
-
                 final String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
                     @Override
@@ -174,12 +171,7 @@ public class MapsActivity extends FragmentActivity {
                             try {
                                 Gson gson = new GsonBuilder().create();
                                 Root root = gson.fromJson(string, Root.class);
-//                            JSONObject json = new JSONObject(string);
-//                            JSONArray array = json.getJSONArray("weather");
-//                            JSONObject object = (JSONObject) array.get(0);
-                                //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
                                 Log.e(getLocalClassName(), string);
-                                //tvLatLng.setText("Weather: " + object.getString("description"));
                                 Weather weather = root.getWeather()[0];
                                 Main main = root.getMain();
                                 Wind wind = root.getWind();
@@ -192,15 +184,15 @@ public class MapsActivity extends FragmentActivity {
                                 final String img_url = "http://www.keenthemes.com/preview/conquer/assets/plugins/jcrop/demos/demo_files/image1.jpg";//IMG_URL+weather.getIcon()+".png";
                                 imgView.setImageDrawable(getResources().getDrawable(R.drawable.wally));
 
-                                new AsyncTask<Void, Bitmap, Bitmap>(){
+                                new AsyncTask<Void, Bitmap, Bitmap>() {
                                     @Override
                                     protected Bitmap doInBackground(Void... params) {
-                                        URL url= null;
-                                        Bitmap bmp =null;
+                                        URL url = null;
+                                        Bitmap bmp = null;
                                         try {
                                             url = new URL(img_url);
 
-                                       bmp =BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                                            bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
                                         } catch (MalformedURLException e) {
                                             e.printStackTrace();
                                         } catch (IOException e) {
@@ -212,30 +204,11 @@ public class MapsActivity extends FragmentActivity {
                                     @Override
                                     protected void onPostExecute(Bitmap aVoid) {
                                         super.onPostExecute(aVoid);
-                                        Log.e(getLocalClassName(), imgView +" "+ aVoid);
-                                                imgView.setImageBitmap(aVoid);
-                                            }
+                                        Log.e(getLocalClassName(), imgView + " " + aVoid);
+                                        imgView.setImageBitmap(aVoid);
+                                    }
 
                                 }.execute();
-
-//                                new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
-//                                    @Override
-//                                    public void result(String string) throws JSONException {
-//                                        if (string!=null) {
-//                                            Bitmap img = new ImageUtil().StringToBitMap(string);
-//                                            Log.e(getLocalClassName(), "retrieving image " + img);
-//                                            imgView.setImageBitmap(img);
-//                                            imgView.setVisibility(View.VISIBLE);
-//                                        }else {
-//                                            Log.e(getLocalClassName(),"image retrieved is null");
-//                                            imgView.setVisibility(View.GONE);
-//                                        }
-//                                        /*if (string != null && string.getBytes().length > 0) {
-//                                            Bitmap img = BitmapFactory.decodeByteArray(string.getBytes(), 0, string.getBytes().length);
-//                                            imgView.setImageBitmap(img);
-//                                        }*/
-//                                    }
-//                                });
 
                             } catch (Exception e) {
 
@@ -246,22 +219,6 @@ public class MapsActivity extends FragmentActivity {
                         }
                     }
                 });
-
-    /*            timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
-
-                //utc time
-
-                DateFormat df = DateFormat.getTimeInstance();
-                df.setTimeZone(TimeZone.getTimeZone("utc"));
-                String gmtTime = df.format(new Date());
-
-                // Setting the longitude
-                utc.setText("UTC: " + gmtTime);
-
-                df.setTimeZone(TimeZone.getDefault());
-                String localTime = df.format(new Date());
-                local.setText("Local: " + localTime);
-    */
 
                 // Returning the view containing InfoWindow contents
                 return v;
@@ -276,17 +233,6 @@ public class MapsActivity extends FragmentActivity {
             }
         });
 
-
-//        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-//            @Override
-//            public void onMyLocationChange(Location location) {
-//                if (lastKnownMarkerLocation == null) {
-//                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-//                    drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
-//                }
-//            }
-//        });
-
     }
 
 
@@ -298,16 +244,6 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             final Marker marker = mMap.addMarker(options);
-//            mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
-//                @Override
-//                public void onFinish() {
-//                }
-//
-//                @Override
-//                public void onCancel() {
-//
-//                }
-//            });
             mMap.animateCamera(cameraUpdate);
             marker.setInfoWindowAnchor(0.3f, -0.1f);
             marker.showInfoWindow();
