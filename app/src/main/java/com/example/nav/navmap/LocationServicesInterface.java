@@ -8,6 +8,9 @@ import android.location.Location;
 
 public interface LocationServicesInterface {
 
-public void deviceLocation(Location location);
+    /** returns the device location
+     * @param location
+     */
+    public void deviceLocation(Location location);
 
 }

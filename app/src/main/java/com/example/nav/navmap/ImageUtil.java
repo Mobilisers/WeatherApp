@@ -16,6 +16,11 @@ import java.net.URL;
  */
 public class ImageUtil {
 
+    /**
+     * method to serialize the bitmap to string.
+     * @param bitmap
+     * @return
+     */
     public String BitMapToString(Bitmap bitmap){
         ByteArrayOutputStream ByteStream=new  ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG,100, ByteStream);
@@ -24,6 +29,11 @@ public class ImageUtil {
         return temp;
     }
 
+    /**
+     * method to deserialize encoded string to bitmap.
+     * @param encodedString
+     * @return
+     */
     public Bitmap StringToBitMap(String encodedString){
         try{
             byte [] encodeByte=Base64.decode(encodedString,Base64.DEFAULT);
@@ -31,24 +41,6 @@ public class ImageUtil {
             return bitmap;
         }catch(Exception e){
             e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static Bitmap getBitmapFromURL(String src) {
-        try {
-            Log.e("src", src);
-            URL url = new URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            Log.e("Bitmap","returned");
-            return myBitmap;
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e("Exception", e.getMessage());
             return null;
         }
     }

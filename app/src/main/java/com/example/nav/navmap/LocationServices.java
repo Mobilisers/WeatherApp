@@ -31,6 +31,10 @@ public class LocationServices implements LocationListener {
 
     LocationServicesInterface callback;
 
+    /**
+     * method that provides location services
+     * @param activity
+     */
     public LocationServices(Activity activity) {
 
         this.activity = activity;
@@ -53,6 +57,9 @@ public class LocationServices implements LocationListener {
 
     }
 
+    /**
+     * method to stop location updates.
+     */
     public void stopLocationUpdates() {
 
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -71,6 +78,10 @@ public class LocationServices implements LocationListener {
 
     }
 
+    /**
+     * method that returns current device location.
+     * @param callback
+     */
     public void getCurrentDeviceLocation(LocationServicesInterface callback) {
         if (lastKnownDeviceLocation != null) {
             callback.deviceLocation(lastKnownDeviceLocation);
@@ -81,6 +92,10 @@ public class LocationServices implements LocationListener {
 
     }
 
+    /**
+     * method that returns the best known location of the device.
+     * @return
+     */
     private android.location.Location getBestKnownLastLocation() {
         Log.e(getClass().getSimpleName(), "current location");
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -160,7 +175,12 @@ public class LocationServices implements LocationListener {
         dialog.show();
     }
 
-    public static String getApplicationName(Context context) {
+    /**
+     * get the app name.
+     * @param context
+     * @return
+     */
+    private static String getApplicationName(Context context) {
         int stringId = context.getApplicationInfo().labelRes;
         return context.getString(stringId) + " ";
     }

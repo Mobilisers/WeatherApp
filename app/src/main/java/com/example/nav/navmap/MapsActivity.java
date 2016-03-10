@@ -1,11 +1,7 @@
 package com.example.nav.navmap;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,16 +24,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.DateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 public class MapsActivity extends FragmentActivity {
 
@@ -65,7 +52,7 @@ public class MapsActivity extends FragmentActivity {
     protected void onResume() {
         Log.e(getLocalClassName(), "onResume");
         super.onResume();
-        if (!new NetworkServices(null, this, null).isNetworkAvailable()) {
+        if (!new NetworkServices(this).isNetworkAvailable()) {
             Toast.makeText(this, "NetworkServices Connection Not Availble", Toast.LENGTH_LONG).show();
         } else {
             setUpMapIfNeeded();
@@ -125,14 +112,6 @@ public class MapsActivity extends FragmentActivity {
      * This should only be called once and when we are sure that {@link #mMap} is not null.
      */
     private void setUpMap() {
-
-//        mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
-//            @Override
-//            public void onMapLoaded() {
-//
-//            }
-//        });
-
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -190,7 +169,12 @@ public class MapsActivity extends FragmentActivity {
 
     }
 
-
+    /**
+     * Draws marker at the specified latLng and makes network call to retrieve associated information for the geolocation.
+     *
+     * @param latLng the latLng for the marker
+     * @param zoom   the zoom level for the map
+     */
     public void drawMarkerAtLocation(LatLng latLng, float zoom) {
         if (mMap != null) {
             mMap.clear();
@@ -199,55 +183,40 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             final Marker marker = mMap.addMarker(options);
-            mMap.animateCamera(cameraUpdate);
-            marker.setInfoWindowAnchor(0.3f, -0.1f);
             final String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
-            new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
+            mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
                 @Override
-                public void result(String string) throws JSONException {
-                    if (string != null) {
-                        try {
-                            Gson gson = new GsonBuilder().create();
-                            root = gson.fromJson(string, Root.class);
-                            final Weather weather = root.getWeather()[0];
-                            Log.e(getLocalClassName(), string);
-                            final String img_url = IMG_URL+weather.getIcon()+".png";
-
-                            new AsyncTask<Void, Bitmap, Bitmap>() {
-                                @Override
-                                protected Bitmap doInBackground(Void... params) {
-                                    URL url = null;
-                                    Bitmap bmp = null;
-                                    try {
-                                        url = new URL(img_url);
-
-                                        bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                                    } catch (MalformedURLException e) {
-                                        e.printStackTrace();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                    return bmp;
-                                }
-
-                                @Override
-                                protected void onPostExecute(Bitmap aVoid) {
-                                    super.onPostExecute(aVoid);
-                                    weather.setIcon(new ImageUtil().BitMapToString(aVoid));
+                public void onFinish() {
+                    new NetworkServices(getApplicationContext()).runAsyncNetworkTask(url, new NetworkServicesInterface() {
+                        @Override
+                        public void Result(String string) {
+                            if (string != null) {
+                                try {
+                                    Gson gson = new GsonBuilder().create();
+                                    root = gson.fromJson(string, Root.class);
+                                    final Weather weather = root.getWeather()[0];
+                                    Log.e(getLocalClassName(), string);
+                                    final String img_url = IMG_URL + weather.getIcon() + ".png";
+                                    Bitmap bmp = new NetworkServices(getApplicationContext()).getBitmapFromUrl(img_url);
+                                    weather.setIcon(new ImageUtil().BitMapToString(bmp));
+                                    marker.setInfoWindowAnchor(0.3f, -0.1f);
                                     marker.showInfoWindow();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(), "Some error happened, please relaunch the app", Toast.LENGTH_LONG).show();
+
                                 }
-
-                            }.execute();
-
-                        } catch (Exception e) {
-
-                            e.printStackTrace();
-                            Toast.makeText(getApplicationContext(), "Some error happened, please relaunch the app", Toast.LENGTH_LONG).show();
-
+                            }
                         }
-                    }
+                    });
+                }
+
+                @Override
+                public void onCancel() {
+
                 }
             });
+
         }
     }
 
