@@ -27,9 +27,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -223,39 +220,12 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             marker = mMap.addMarker(options);
-            //find geo information from latLng received
-            Geocoder geocoder;
-            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-            List<Address> addresses = null;
-            try {
-                addresses = geocoder.getFromLocation(marker.getPosition().latitude, marker.getPosition().longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-//            Log.e(getLocalClassName(), "XXXXXX" + addresses);
             String tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID;
-            if (addresses != null && addresses.size() > 0) {
-                String city = addresses.get(0).getLocality();
-                if (city == null) {
-                    city = addresses.get(0).getSubAdminArea();
+            geographicInformation = new GeoUtil().getGeoDataFromLatLng(getApplicationContext(), marker.getPosition());
+            if (geographicInformation != null) {
+                if (geographicInformation.countryCode != null & geographicInformation.state != null) {
+                    tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID + "&q=" + geographicInformation.city + "," + geographicInformation.countryCode;
                 }
-                String state = addresses.get(0).getAdminArea();
-                String zip = addresses.get(0).getPostalCode();
-                String country = addresses.get(0).getCountryName();
-                String countryCode = addresses.get(0).getCountryCode();
-                geographicInformation = new GeographicInformation();
-                geographicInformation.city = city;
-                geographicInformation.state = state;
-                geographicInformation.zip = zip;
-                geographicInformation.country = country;
-                geographicInformation.countryCode = countryCode;
-                Log.e(getLocalClassName(), "Geo Information: " + addresses.get(0));
-                if (countryCode != null & state != null) {
-                    tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID + "&q=" + city + "," + countryCode;
-                }
-            } else {
-                //fix for cached geo information shown when geo information not available for geolocation such as oceans
-                geographicInformation = null;
             }
             final String url = tempUrl;
             mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
