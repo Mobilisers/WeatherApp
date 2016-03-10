@@ -216,11 +216,11 @@ public class MapsActivity extends FragmentActivity {
             geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
             List<Address> addresses = null;
             try {
-                addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+                addresses = geocoder.getFromLocation(marker.getPosition().latitude, marker.getPosition().longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String tempUrl = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+            String tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID;
             if (addresses != null && addresses.size() > 0) {
                 String city = addresses.get(0).getLocality();
                 if (city == null) {
@@ -238,7 +238,7 @@ public class MapsActivity extends FragmentActivity {
                 geographicInformation.countryCode = countryCode;
                 Log.e(getLocalClassName(), "Geo Information: " + addresses.get(0));
                 if (countryCode != null & state != null) {
-                    tempUrl = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID + "&q=" + city + "," + countryCode;
+                    tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID + "&q=" + city + "," + countryCode;
                 }
             }
             final String url = tempUrl;
