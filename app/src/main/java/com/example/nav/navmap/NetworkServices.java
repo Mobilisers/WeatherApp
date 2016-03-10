@@ -35,7 +35,7 @@ public class NetworkServices extends AsyncTask<String, String, String> {
         String urls[] = new String[1];
         urls[0] = url;
         try {
-            callback.result(new JSONObject(execute(url).get()));
+            callback.result(execute(url).get());
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {

@@ -74,6 +74,7 @@ public class LocationServices implements LocationListener {
     public void getCurrentDeviceLocation(LocationServicesInterface callback) {
         if (lastKnownDeviceLocation != null) {
             callback.deviceLocation(lastKnownDeviceLocation);
+            callback = null;
         } else {
             this.callback = callback;
         }

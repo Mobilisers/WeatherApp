@@ -1,5 +1,7 @@
 package com.example.nav.navmap;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -33,6 +35,8 @@ import java.util.TimeZone;
 
 public class MapsActivity extends FragmentActivity {
 
+    private static String BASE_URL = "http://api.openweathermap.org/data/2.5/weather?";
+    private static String IMG_URL = "http://openweathermap.org/img/w/";
     //cache last location of marker
     static LatLng lastKnownMarkerLocation;
     public static final int REQUEST_LOCATION = 100;
@@ -154,19 +158,20 @@ public class MapsActivity extends FragmentActivity {
                 final TextView press = (TextView) v.findViewById(R.id.press);
                 final TextView windSpeed = (TextView) v.findViewById(R.id.windSpeed);
                 final TextView windDeg = (TextView) v.findViewById(R.id.windDeg);
-                ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
+                final ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
 
-                String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+                String url = BASE_URL+"lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
                     @Override
-                    public void result(JSONObject json) throws JSONException {
-                        if (json != null) {
+                    public void result(String string) throws JSONException {
+                        if (string != null) {
                             Gson gson = new GsonBuilder().create();
-                            Root root = gson.fromJson(String.valueOf(json), Root.class);
+                            Root root = gson.fromJson(string, Root.class);
+//                            JSONObject json = new JSONObject(string);
 //                            JSONArray array = json.getJSONArray("weather");
 //                            JSONObject object = (JSONObject) array.get(0);
                             //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
-                            Log.e(getLocalClassName(), String.valueOf(json));
+                            Log.e(getLocalClassName(), string);
                             //tvLatLng.setText("Weather: " + object.getString("description"));
                             Weather weather = root.getWeather()[0];
                             Main main = root.getMain();
@@ -177,6 +182,10 @@ public class MapsActivity extends FragmentActivity {
                             press.setText("" + main.getPressure() + " hPa");
                             windSpeed.setText("" + wind.getSpeed() + " mps");
                             windDeg.setText("" + wind.getDeg() + DEGREE);
+                            if (weather.getIcon() != null && weather.getIcon().getBytes().length > 0) {
+                                Bitmap img = BitmapFactory.decodeByteArray(weather.getIcon().getBytes(), 0, weather.getIcon().getBytes().length);
+                                imgView.setImageBitmap(img);
+                            }
                         }
                     }
                 });
@@ -227,6 +236,8 @@ public class MapsActivity extends FragmentActivity {
     public void drawMarkerAtLocation(LatLng latLng, float zoom) {
         if (mMap != null) {
             mMap.clear();
+            //XXXXXXXXXXXX
+            lastKnownMarkerLocation = latLng;
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             final Marker marker = mMap.addMarker(options);
@@ -245,4 +256,12 @@ public class MapsActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (locationServices!=null){
+            locationServices.stopLocationUpdates();
+            locationServices = null;
+        }
+    }
 }
