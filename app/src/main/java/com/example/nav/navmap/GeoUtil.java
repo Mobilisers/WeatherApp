@@ -19,6 +19,13 @@ public class GeoUtil {
 
     GeographicInformation geographicInformation;
 
+    /**
+     * Gets geo Information from provided latLng
+     *
+     * @param context the application context preferably
+     * @param latLng  the latLng for which to get geo information
+     * @return returns GeographicInformation
+     */
     public GeographicInformation getGeoDataFromLatLng(Context context, LatLng latLng) {
         //find geo information from latLng received
         Geocoder geocoder;
