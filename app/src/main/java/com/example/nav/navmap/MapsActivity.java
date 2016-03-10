@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.nav.navmap.models.Root;
+import com.example.nav.navmap.models.Weather;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -15,6 +17,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -165,11 +169,15 @@ public class MapsActivity extends FragmentActivity {
                     @Override
                     public void result(JSONObject json) throws JSONException {
                         if (json != null) {
-                            JSONArray array = json.getJSONArray("weather");
-                            JSONObject object = (JSONObject) array.get(0);
+                            Gson gson = new GsonBuilder().create();
+                            Root root = gson.fromJson(String.valueOf(json), Root.class);
+//                            JSONArray array = json.getJSONArray("weather");
+//                            JSONObject object = (JSONObject) array.get(0);
                             //Toast.makeText(getApplicationContext(), json, Toast.LENGTH_LONG).show();
-                            Log.e(getLocalClassName(), String.valueOf(array));
-                            tvLatLng.setText("Weather: " + object.getString("description"));
+                            Log.e(getLocalClassName(), String.valueOf(json));
+                            //tvLatLng.setText("Weather: " + object.getString("description"));
+                            Weather weather = root.getWeather()[0];
+                            tvLatLng.setText(weather.getMain()+" ("+weather.getDescription()+")");
                         }
                     }
                 });

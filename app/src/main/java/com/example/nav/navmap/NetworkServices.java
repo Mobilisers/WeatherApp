@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -51,6 +52,7 @@ public class NetworkServices extends AsyncTask<String, String, String> {
 
             try {
                 URL url = new URL(params[0]);
+                Log.e(getClass().getSimpleName(), "making async call to "+url);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 InputStream in = new BufferedInputStream(urlConnection.getInputStream());
 
