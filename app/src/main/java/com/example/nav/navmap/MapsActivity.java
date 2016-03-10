@@ -48,6 +48,7 @@ public class MapsActivity extends FragmentActivity {
     public static final String DEGREE = "\u00b0";
     GeographicInformation geographicInformation;
     Root root;
+    Marker marker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,8 +123,19 @@ public class MapsActivity extends FragmentActivity {
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                lastKnownMarkerLocation = latLng;
-                drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+                if (marker == null) {
+                    lastKnownMarkerLocation = latLng;
+                    drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+                } else {
+                    if (marker.isInfoWindowShown()) {
+                        lastKnownMarkerLocation = latLng;
+                        drawMarkerAtLocation(latLng, mMap.getCameraPosition().zoom);
+                    } else {
+                        lastKnownMarkerLocation = null;
+                        mMap.clear();
+                        marker = null;
+                    }
+                }
             }
         });
 
@@ -210,7 +222,7 @@ public class MapsActivity extends FragmentActivity {
             lastKnownMarkerLocation = latLng;
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
-            final Marker marker = mMap.addMarker(options);
+            marker = mMap.addMarker(options);
             //find geo information from latLng received
             Geocoder geocoder;
             geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
