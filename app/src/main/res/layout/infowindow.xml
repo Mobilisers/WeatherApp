@@ -28,6 +28,7 @@
 
     <TextView
         android:id="@+id/condDescr"
+        android:layout_marginTop="5dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@id/condIcon"
@@ -49,8 +50,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@id/condDescr"
-        android:layout_marginTop="15dp"
-        android:text="Pressure" />
+        android:layout_marginTop="10dp"
+        android:text="Pressure " />
 
     <TextView
         android:id="@+id/press"
