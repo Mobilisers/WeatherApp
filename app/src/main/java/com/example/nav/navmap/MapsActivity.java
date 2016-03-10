@@ -182,7 +182,6 @@ public class MapsActivity extends FragmentActivity {
                     cityText.setVisibility(View.GONE);
                 }
                 //imgView.setImageDrawable(getResources().getDrawable(R.drawable.wally));
-                Log.e(getLocalClassName(), imgView + " " + weather.getIcon());
                 imgView.setImageBitmap(new ImageUtil().StringToBitMap(weather.getIcon()));
                 // Returning the view containing InfoWindow contents
                 return v;
@@ -224,6 +223,9 @@ public class MapsActivity extends FragmentActivity {
             String tempUrl = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
             if (addresses != null && addresses.size() > 0) {
                 String city = addresses.get(0).getLocality();
+                if (city == null) {
+                    city = addresses.get(0).getSubAdminArea();
+                }
                 String state = addresses.get(0).getAdminArea();
                 String zip = addresses.get(0).getPostalCode();
                 String country = addresses.get(0).getCountryName();
