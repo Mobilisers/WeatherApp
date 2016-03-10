@@ -5,11 +5,14 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.nav.navmap.models.Main;
 import com.example.nav.navmap.models.Root;
 import com.example.nav.navmap.models.Weather;
+import com.example.nav.navmap.models.Wind;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -37,7 +40,8 @@ public class MapsActivity extends FragmentActivity {
     LocationServices locationServices;
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    Marker marker;
+    static Marker marker;
+    public static final String DEGREE  = "\u00b0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,17 +156,14 @@ public class MapsActivity extends FragmentActivity {
                     latLng = lastKnownMarkerLocation;
                 }
 
-                // Getting reference to the TextView to set latitude and longitude
-                final TextView tvLatLng = (TextView) v.findViewById(R.id.latlong);
-
-                // Getting reference to the TextView to set timezone
-                TextView timezone = (TextView) v.findViewById(R.id.timezone);
-                TextView utc = (TextView) v.findViewById(R.id.utc);
-                TextView local = (TextView) v.findViewById(R.id.localTime);
-
-                // Setting the latitude
-//                String latlong = "Latitude:" + latLng.latitude + " and Longitude:" + latLng.longitude;
-//                tvLatLng.setText(latlong.trim());
+                TextView cityText = (TextView) v.findViewById(R.id.cityText);
+                final TextView condDescr = (TextView) v.findViewById(R.id.condDescr);
+                final TextView temp = (TextView) v.findViewById(R.id.temp);
+                final TextView hum = (TextView) v.findViewById(R.id.hum);
+                final TextView press = (TextView) v.findViewById(R.id.press);
+                final TextView windSpeed = (TextView) v.findViewById(R.id.windSpeed);
+                final TextView windDeg = (TextView) v.findViewById(R.id.windDeg);
+                ImageView imgView = (ImageView) v.findViewById(R.id.condIcon);
 
                 String url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
                 new NetworkServices(url, getApplicationContext(), new NetworkServicesInterface() {
@@ -177,12 +178,19 @@ public class MapsActivity extends FragmentActivity {
                             Log.e(getLocalClassName(), String.valueOf(json));
                             //tvLatLng.setText("Weather: " + object.getString("description"));
                             Weather weather = root.getWeather()[0];
-                            tvLatLng.setText(weather.getMain()+" ("+weather.getDescription()+")");
+                            Main main = root.getMain();
+                            Wind wind = root.getWind();
+                            condDescr.setText(weather.getMain() + " (" + weather.getDescription() + ")");
+                            temp.setText("" + Math.round((Double.valueOf(main.getTemp()) - 273.15)) + DEGREE+"C");
+                            hum.setText("" + main.getHumidity() + "%");
+                            press.setText("" + main.getPressure() + " hPa");
+                            windSpeed.setText("" + wind.getSpeed() + " mps");
+                            windDeg.setText("" + wind.getDeg() + DEGREE);
                         }
                     }
                 });
 
-                timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
+    /*            timezone.setText("TimeZone: " + TimeZone.getDefault().getDisplayName());
 
                 //utc time
 
@@ -196,6 +204,7 @@ public class MapsActivity extends FragmentActivity {
                 df.setTimeZone(TimeZone.getDefault());
                 String localTime = df.format(new Date());
                 local.setText("Local: " + localTime);
+    */
 
                 // Returning the view containing InfoWindow contents
                 return v;
