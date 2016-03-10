@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.nav.navmap.models.GeographicInformation;
 import com.example.nav.navmap.models.Main;
 import com.example.nav.navmap.models.Root;
 import com.example.nav.navmap.models.Sys;
@@ -45,6 +46,7 @@ public class MapsActivity extends FragmentActivity {
     public static final int DEFAULT_ZOOM_LEVEL = 5;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     public static final String DEGREE = "\u00b0";
+    GeographicInformation geographicInformation;
     Root root;
 
     @Override
@@ -166,16 +168,12 @@ public class MapsActivity extends FragmentActivity {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (addresses != null && addresses.size() > 0) {
-                    String city = addresses.get(0).getLocality();
-                    String state = addresses.get(0).getAdminArea();
-                    String zip = addresses.get(0).getPostalCode();
-                    String country = addresses.get(0).getCountryName();
-                    if (country != null) {
-                        if (state == null) {
-                            cityText.setText(country);
+                if (geographicInformation != null) {
+                    if (geographicInformation.country != null) {
+                        if (geographicInformation.state == null) {
+                            cityText.setText(geographicInformation.country);
                         } else {
-                            cityText.setText(country + " (" + state + ")");
+                            cityText.setText(geographicInformation.country + " (" + geographicInformation.state + ")");
                         }
                     } else {
                         cityText.setVisibility(View.GONE);
@@ -214,7 +212,34 @@ public class MapsActivity extends FragmentActivity {
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
             MarkerOptions options = new MarkerOptions().position(latLng);//.title("Marker");
             final Marker marker = mMap.addMarker(options);
-            final String url = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+            //find geo information from latLng received
+            Geocoder geocoder;
+            geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+            List<Address> addresses = null;
+            try {
+                addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String tempUrl = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID;
+            if (addresses != null && addresses.size() > 0) {
+                String city = addresses.get(0).getLocality();
+                String state = addresses.get(0).getAdminArea();
+                String zip = addresses.get(0).getPostalCode();
+                String country = addresses.get(0).getCountryName();
+                String countryCode = addresses.get(0).getCountryCode();
+                geographicInformation = new GeographicInformation();
+                geographicInformation.city = city;
+                geographicInformation.state = state;
+                geographicInformation.zip = zip;
+                geographicInformation.country = country;
+                geographicInformation.countryCode = countryCode;
+                Log.e(getLocalClassName(), "Geo Information: " + addresses.get(0));
+                if (countryCode != null & state != null) {
+                    tempUrl = BASE_URL + "lat=" + latLng.latitude + "&lon=" + latLng.latitude + "&APPID=" + APPID + "&q=" + city + "," + countryCode;
+                }
+            }
+            final String url = tempUrl;
             mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
                 @Override
                 public void onFinish() {
