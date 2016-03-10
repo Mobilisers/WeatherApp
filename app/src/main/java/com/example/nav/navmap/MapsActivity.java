@@ -220,6 +220,7 @@ public class MapsActivity extends FragmentActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+//            Log.e(getLocalClassName(), "XXXXXX" + addresses);
             String tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID;
             if (addresses != null && addresses.size() > 0) {
                 String city = addresses.get(0).getLocality();
@@ -240,6 +241,9 @@ public class MapsActivity extends FragmentActivity {
                 if (countryCode != null & state != null) {
                     tempUrl = BASE_URL + "lat=" + marker.getPosition().latitude + "&lon=" + marker.getPosition().latitude + "&APPID=" + APPID + "&q=" + city + "," + countryCode;
                 }
+            } else {
+                //fix for cached geo information shown when geo information not available for geolocation such as oceans
+                geographicInformation = null;
             }
             final String url = tempUrl;
             mMap.animateCamera(cameraUpdate, new GoogleMap.CancelableCallback() {
