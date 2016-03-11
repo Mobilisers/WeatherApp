@@ -8,8 +8,8 @@ import org.json.JSONObject;
  */
 public interface NetworkServicesInterface {
     /**
-     *returns the result of async network call.
+     * Returns the result of async network call.
      * @param string
      */
-    public void Result(String string);
+    public void onResult(String string);
 }

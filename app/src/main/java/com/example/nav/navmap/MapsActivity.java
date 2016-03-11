@@ -240,7 +240,7 @@ public class MapsActivity extends FragmentActivity {
                 public void onFinish() {
                     new NetworkServices(getApplicationContext()).runAsyncNetworkTask(url, new NetworkServicesInterface() {
                         @Override
-                        public void Result(String string) {
+                        public void onResult(String string) {
                             if (string != null) {
                                 try {
                                     Gson gson = new GsonBuilder().create();

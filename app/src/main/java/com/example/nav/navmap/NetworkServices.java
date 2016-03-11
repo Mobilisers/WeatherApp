@@ -9,14 +9,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.json.JSONException;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -26,11 +23,8 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by nav on 3/8/16.
  */
-public class NetworkServices extends AsyncTask<String, String, String> {
-
-    HttpURLConnection urlConnection;
+public class NetworkServices {
     Context context;
-    NetworkServicesInterface callback;
     final static String INTERNET_NOT_AVAILABLE = "Internet connection not available";
 
     /**
@@ -43,86 +37,85 @@ public class NetworkServices extends AsyncTask<String, String, String> {
     }
 
     /**
-     * Use this method to make async network calls.
+     * Use this method to make async network calls and returns result string.
      * To get the results of an async request listen to the callback via NetworkServicesListener.
      *
      * @param url      the url to request
      * @param callback the callback which implements NetworkServicesListener
      */
-    public void runAsyncNetworkTask(String url, NetworkServicesInterface callback) {
-        if (callback != null & url != null) {
-            String urls[] = new String[1];
-            urls[0] = url;
-            this.callback = callback;
-            execute(url);
-        }
-    }
-
-    @Override
-    protected String doInBackground(String... params) {
+    public void runAsyncNetworkTask(String url, final NetworkServicesInterface callback) {
         if (isNetworkAvailable()) {
-            StringBuilder result = new StringBuilder();
-            InputStream in = null;
-            BufferedReader reader = null;
-            try {
-                URL url = new URL(params[0]);
-                //fix for escaping spaces that results in malformed url
-                URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
-                url = uri.toURL();
-                Log.e(getClass().getSimpleName(), "making async call to " + url);
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setInstanceFollowRedirects(true);
-                if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    in = new BufferedInputStream(urlConnection.getInputStream());
-                    reader = new BufferedReader(new InputStreamReader(in));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        result.append(line);
+            if (callback != null & url != null) {
+                String urls[] = new String[1];
+                urls[0] = url;
+                new AsyncTask<String, String, String>() {
+                    @Override
+                    protected String doInBackground(String... urls) {
+                        HttpURLConnection urlConnection = null;
+                        StringBuilder result = new StringBuilder();
+                        InputStream in = null;
+                        BufferedReader reader = null;
+                        try {
+                            URL url = new URL(urls[0]);
+                            //fix for escaping spaces that results in malformed url
+                            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+                            url = uri.toURL();
+                            Log.e(getClass().getSimpleName(), "making async call to " + url);
+                            urlConnection = (HttpURLConnection) url.openConnection();
+                            urlConnection.setInstanceFollowRedirects(true);
+                            if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                                in = new BufferedInputStream(urlConnection.getInputStream());
+                                reader = new BufferedReader(new InputStreamReader(in));
+                                String line;
+                                while ((line = reader.readLine()) != null) {
+                                    result.append(line);
+                                }
+
+                            } else {
+                                Log.e(getClass().getSimpleName(), "HTTP ERROR CODE " + urlConnection.getResponseCode() + " " + urlConnection.getResponseMessage());
+                                in = new BufferedInputStream(urlConnection.getErrorStream());
+                                reader = new BufferedReader(new InputStreamReader(in));
+                                String line;
+                                while ((line = reader.readLine()) != null) {
+                                    result.append(line);
+                                }
+                                Log.e(getClass().getSimpleName(), "Error: " + line);
+                                urlConnection.getErrorStream().close();
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            if (urlConnection != null) {
+                                urlConnection.disconnect();
+                            }
+                            if (in != null) {
+                                try {
+                                    in.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            if (reader != null) {
+                                try {
+                                    reader.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        return result.toString();
                     }
 
-                } else {
-                    Log.e(getClass().getSimpleName(), "HTTP ERROR CODE " + urlConnection.getResponseCode() + " " + urlConnection.getResponseMessage());
-                    in = new BufferedInputStream(urlConnection.getInputStream());
-                    reader = new BufferedReader(new InputStreamReader(in));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        result.append(line);
+                    @Override
+                    protected void onPostExecute(String result) {
+                        super.onPostExecute(result);
+                        if (result.length() > 0) {
+                            callback.onResult(result);
+                        }
                     }
-                    Log.e(getClass().getSimpleName(), "Error: " + line);
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                urlConnection.disconnect();
-                if (in != null) {
-                    try {
-                        in.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+                }.execute(urls);
             }
-            return result.toString();
-        } else {
-            Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
-            return null;
-        }
-    }
-
-    @Override
-    protected void onPostExecute(String result) {
-        super.onPostExecute(result);
-        if (this.callback != null & result.length() > 0) {
-            this.callback.Result(result);
-            this.callback = null;
         }
     }
 
@@ -181,7 +174,11 @@ public class NetworkServices extends AsyncTask<String, String, String> {
         if (networkInfo != null && networkInfo.isConnected()) {
             return true;
         } else {
-            Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
+            if (context != null) {
+                Toast.makeText(context, INTERNET_NOT_AVAILABLE, Toast.LENGTH_LONG).show();
+            } else {
+                Log.e(getClass().getSimpleName(), INTERNET_NOT_AVAILABLE);
+            }
             return false;
         }
     }
