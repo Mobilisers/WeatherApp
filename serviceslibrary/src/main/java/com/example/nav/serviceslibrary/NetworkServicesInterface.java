@@ -1,7 +1,4 @@
-package com.example.nav.navmap;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+package com.example.nav.serviceslibrary;
 
 /**
  * Created by nav on 3/9/16.

@@ -1,0 +1,7 @@
+<resources>
+<string name="app_name">ServicesLibrary</string>
+<string name="gps_network_not_enabled">needs access to your device\'s location</string>
+<string name="open_location_settings">Allow</string>
+<string name="Cancel">Deny</string>
+</resources>
+

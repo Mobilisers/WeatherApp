@@ -1,4 +1,4 @@
-package com.example.nav.navmap;
+package com.example.nav.serviceslibrary;
 
 import android.content.Context;
 import android.graphics.Bitmap;

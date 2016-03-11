@@ -1,4 +1,4 @@
-package com.example.nav.navmap;
+package com.example.nav.serviceslibrary;
 
 import android.Manifest;
 import android.app.Activity;
@@ -16,8 +16,6 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.logging.Handler;
 
 public class LocationServices implements LocationListener {
 
@@ -96,7 +94,7 @@ public class LocationServices implements LocationListener {
      * method that returns the best known location of the device.
      * @return
      */
-    private android.location.Location getBestKnownLastLocation() {
+    private Location getBestKnownLastLocation() {
         Log.e(getClass().getSimpleName(), "current location");
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -128,7 +126,7 @@ public class LocationServices implements LocationListener {
     }
 
     @Override
-    public void onLocationChanged(android.location.Location location) {
+    public void onLocationChanged(Location location) {
         if (lastKnownDeviceLocation == null) {
             lastKnownDeviceLocation = location;
             if (callback!=null) {
